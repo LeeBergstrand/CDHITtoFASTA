@@ -1,1 +1,4 @@
-__author__ = 'lee'
+__author__ = 'Lee Bergstrand'
+"""
+	The CDHITtoFASTA Package.
+"""
