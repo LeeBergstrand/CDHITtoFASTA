@@ -10,7 +10,7 @@ import re
 from Bio import SeqIO
 from os import path
 
-cluster_sequence_regex = re.compile("(\d*)\s*(\d*)aa,\s*(.*)\.\.\.\s*(?:at)?\s*([0-9\.\*]*)%?", re.IGNORECASE)
+cluster_sequence_regex = re.compile("(\d*)\s*(\d*)aa,\s*>?(.*)\.\.\.\s*(?:at)?\s*([0-9\.\*]*)%?", re.IGNORECASE)
 
 
 # ==========
@@ -143,10 +143,15 @@ def get_cluster_list(input_cluster_path):
 
 
 # -----------------------------------------------------------------------------------------------------------
-def parse_cd_hit_file(cd_cluster_string):
-	# 2: Returns a list containing each cluster in the cd hit-file as a list of accession strings.
+def parse_cd_hit_file(cd_cluster_file_string):
+	"""
+	Parses the contents of a CD-Hit file into a list containing each CD-Hit cluster object.
+
+	:param cd_cluster_file_string: String that contains the contents of a CD-Hit cluster file.
+	:return: List of CD-Hit cluster objects.
+	"""
 	cluster_object_list = []
-	cluster_list = cd_cluster_string.split(">Cluster")
+	cluster_list = cd_cluster_file_string.split(">Cluster")
 	del cluster_list[0]  # File starts with split character thus a empty element is created. Removes empty element.
 
 	counter = 0
@@ -195,68 +200,3 @@ def parse_cluster_sequence(cluster_string):
 		return cluster_sequence_object
 	else:
 		print("[Warning] failed to parse: " + cluster_string)
-
-
-# -----------------------------------------------------------------------------------------------------------
-# 3: Extracts the accessions of each member of the CD-HIT cluster that contains a sequence from the sequence list file.
-def getClusterAccessions(seqList, clusterList):
-	clustersToCreateIntoFASTA = []
-	for seq in seqList:
-		for cluster in clusterList:
-			if seq in cluster:
-				if cluster not in clustersToCreateIntoFASTA:
-					clustersToCreateIntoFASTA.append(cluster)
-				break
-	return clustersToCreateIntoFASTA
-
-
-# -----------------------------------------------------------------------------------------------------------
-# 4: Extracts the FASTA formatted sequece of each member of the CD-HIT cluster.
-def getClusterFASTAs(clustersToCreateIntoFASTA, seqRecordDict):
-	FASTAsToWrite = []
-	for cluster in clustersToCreateIntoFASTA:
-		ClusterFASTA = []
-		for sequence in cluster:
-			try:
-				FASTA = seqRecordDict[sequence].format("fasta")
-			except KeyError:
-				print("Error: " + sequence + " could not be found in input FASTA file!")
-				continue
-			ClusterFASTA.append(FASTA)
-		ClusterFASTAString = "".join(ClusterFASTA)
-		FASTAsToWrite.append(ClusterFASTAString)
-	return FASTAsToWrite
-
-
-# ===========================================================================================================
-"""# Main program code:
-	
-# House keeping...
-argsCheck(4) # Checks if the number of arguments are correct.
-AccessionExtractRegex = re.compile(">.*\.\.\.")
-
-"""
-
-"""
-
-print ">> Extracting clusters which contain sequences from the sequence list."
-ClusterAccessions = getClusterAccessions(seqList, clusterList)
-print ">> Extracting clusters from the input FASTA file."
-FASTAsToWrite = getClusterFASTAs(ClusterAccessions, seqRecords)
-
-# Writes clusters to file.
-print ">> Writing clusters to file in FASTA format."
-ClusterCount = 1
-for FASTA in  FASTAsToWrite:
-	OutFile = seqFile.rstrip(".faa") + "Cluster" + str(ClusterCount) + ".faa"
-	print ">> Writing Cluster " + str(ClusterCount) + " to file..."
-	try:
-		with open(OutFile,"w") as newFile:
-			newFile.write(FASTA)
-			newFile.close()
-		print ">> Done."
-	except IOError:
-		print "Failed to write to " + OutFile
-		sys.exit(1) # Aborts program. (exit(1) indicates that an error occurred)
-	ClusterCount += 1
-print ">> All Done."""

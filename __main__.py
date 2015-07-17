@@ -29,13 +29,35 @@ def main(args):
 	check_file_extensions(reference_list_path, sequence_file_path, cluster_file_path)
 
 	reference_list = get_reference_list(reference_list_path)
-	#print(reference_list)
-
 	fasta_dict = get_fasta_dict(sequence_file_path)
-	#print(fasta_dict)
-
 	cluster_list = get_cluster_list(cluster_file_path)
-	print(cluster_list)
+
+	reference_clusters = []
+	for cluster in cluster_list:
+		for reference_accession in reference_list:
+			if reference_accession in cluster.cluster_sequences.keys():
+				reference_clusters.append(cluster)
+				break
+			else:
+				continue
+
+	fasta_list = []
+	for cluster in reference_clusters:
+		cluster_accessions = cluster.cluster_sequences.keys()
+		cluster_fastas = map(lambda x: fasta_dict[x].format("fasta"), cluster_accessions)
+		cluster_tuple = (cluster.cluster_id, "".join(cluster_fastas))
+		fasta_list.append(cluster_tuple)
+
+	for cluster_id, fasta in fasta_list:
+		try:
+			outfile = "Cluster" + str(cluster_id) + ".faa"
+			with open(outfile, "w") as new_file:
+				new_file.write(fasta)
+				new_file.close()
+		except IOError as e:
+			print(str(e))
+			sys.exit(1)  # Aborts program. (exit(1) indicates that an error occurred)
+
 
 if __name__ == '__main__':
 	# ------------------------------
