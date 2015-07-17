@@ -10,8 +10,10 @@ Requirements:   - This software requires the Biopython module: http://biopython.
 
 # Imports:
 import sys
-from Bio import SeqIO
 from os import path
+
+from Bio import SeqIO
+
 from cd_hit_parser import *
 
 
